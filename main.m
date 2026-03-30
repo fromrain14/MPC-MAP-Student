@@ -53,7 +53,7 @@ read_only_vars.gnss_history = [];
 % V. Init vizualization
 figure(1);
 hold on;
-grid on;
+grid on; 
 axis equal;
 axis([read_only_vars.map.limits(1)-1 read_only_vars.map.limits(3)+1 read_only_vars.map.limits(2)-1 read_only_vars.map.limits(4)+1])
 title('MPC-MAP Arena');
