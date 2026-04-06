@@ -1,2 +1,2 @@
-start_position = [5, 8, pi/2];
-map_name = 'maps/mixed_1.txt';
+start_position = [5, 8, 0];
+map_name = 'maps/custom1.txt';
