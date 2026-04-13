@@ -5,7 +5,7 @@ V_BASE=read_only_vars.agent_drive.max_vel*0.5;
 
 %init
 if read_only_vars.counter==1
-    public_vars.pp_path_id=2;
+    public_vars.pp_path_id=1;
     public_vars.pp_wp_idx=1;
     public_vars.pp_done=false;
     public_vars.pp_path=generate_path(public_vars.pp_path_id);
@@ -91,7 +91,7 @@ switch path_id
     %primka
     case 1
     x=ones(20,1)* 5;
-    y=linspace(8,18,20)';
+    y=linspace(2,8,20)';
     path=[x,y];
 
     case 2

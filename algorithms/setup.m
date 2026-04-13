@@ -1,2 +1,2 @@
-start_position = [5, 8, 0];
-map_name = 'maps/custom1.txt';
+start_position = [5, 2, 0];
+map_name = 'maps/indoor_1.txt';

@@ -1,6 +1,6 @@
 function [target] = get_target(estimated_pose, path)
-LOOKAHEAD_DIST=1.5;
-target=path(end, :);
+LOOKAHEAD_DIST=1;
+target=path(1, :);
 px=estimated_pose(1);
 py=estimated_pose(2);
 
