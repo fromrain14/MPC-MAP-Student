@@ -1,6 +1,6 @@
 function [weights] = weight_particles(particle_measurements, lidar_distances)
 
-sigma=0.3;      
+sigma=2;      
 N=size(particle_measurements, 1);
 weights=zeros(N, 1);
 

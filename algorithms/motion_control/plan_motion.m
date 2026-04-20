@@ -1,24 +1,28 @@
 function [public_vars] = plan_motion(read_only_vars, public_vars)
 
-GOAL_THRESH=1;  
-V_BASE=read_only_vars.agent_drive.max_vel*0.5;
+GOAL_THRESH=0.4;
+V_BASE=read_only_vars.agent_drive.max_vel*1;
 
 %init
 if read_only_vars.counter==1
-    public_vars.pp_path_id=1;
+    public_vars.pp_path_id=4;
     public_vars.pp_wp_idx=1;
     public_vars.pp_done=false;
     public_vars.pp_path=generate_path(public_vars.pp_path_id);
 end
-
 public_vars.path=public_vars.pp_path;
 
 if public_vars.pp_done
     public_vars.motion_vector=[0.0, 0.0];
     return;
 end
-
-pose=read_only_vars.mocap_pose;
+% Pockat na dokonceni GNSS inicializace
+if ~public_vars.gnss_init_done
+    public_vars.motion_vector=[0,0];
+    return;
+end
+pose=public_vars.mu;
+%fprintf('mocap_pose=%.3f %.3f %.3f\n', pose(1), pose(2), pose(3));
 px=pose(1);
 py=pose(2);
 ptheta=pose(3);
@@ -68,7 +72,6 @@ if abs(yG_r) < 1e-6
 end
 %turning radius
 R=(l^2)/(2*yG_r);
-
 % differential drive
 d=read_only_vars.agent_drive.interwheel_dist;
 ratio=1.0/R; % omega/v = 1/R
@@ -109,6 +112,29 @@ switch path_id
     x= linspace(5,18,40)';
     y= 11+3*sin((x-5)/13*2*pi);
     path=[x, y];
+
+case 4
+    % kalman
+ path=[
+    2,  2;
+    2,  3;
+    2,  4;
+    2,  5;
+    2,  6;
+    2,  7;
+    2,  8;
+    3,  8;
+    4,  8;
+    5,  8;
+    8,  8;
+    11, 8;
+    14, 8;
+    16, 8;
+    16, 7;
+    16, 5;
+    16, 3;
+    16, 2;
+];
 
 end
 

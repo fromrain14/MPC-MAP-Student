@@ -4,16 +4,34 @@ function [public_vars] = student_workspace(read_only_vars,public_vars)
 % 8. Perform initialization procedure
 if (read_only_vars.counter == 1)
     public_vars = init_particle_filter(read_only_vars, public_vars);
-    public_vars = init_kalman_filter(read_only_vars, public_vars);
+   public_vars = init_kalman_filter(read_only_vars, public_vars);
 
-    
-    % public_vars.lidar_data     = zeros(200, 8);
-    % public_vars.gnss_data      = zeros(200, 2);
-    % public_vars.data_collected = false;
+end
+
+
+% Task 1: Sber GNSS dat
+if ~public_vars.gnss_init_done
+    if ~any(isnan(read_only_vars.gnss_position))
+        public_vars.gnss_init_data=[public_vars.gnss_init_data; read_only_vars.gnss_position(:)'];
+    end
+    if size(public_vars.gnss_init_data,1)>=100
+        gnss_mean=mean(public_vars.gnss_init_data);
+        gnss_cov=cov(public_vars.gnss_init_data);
+        % Task 1: vypis vysledku
+        fprintf('GNSS mean: x=%.4f, y=%.4f\n', gnss_mean(1), gnss_mean(2));
+        fprintf('GNSS kovariancni matice:\n'); disp(gnss_cov);
+        % Task 4: nastav pocatecni belief z GNSS dat
+        public_vars.mu=[gnss_mean(1); gnss_mean(2); 0];
+        public_vars.sigma=diag([gnss_cov(1,1), gnss_cov(2,2), 1e6]);
+        % Task 1: nastav Q matici
+        public_vars.kf.Q=gnss_cov;
+        public_vars.gnss_init_done=true;
+    end
 end
 
 % 9. Update particle filter
 public_vars.particles = update_particle_filter(read_only_vars, public_vars);
+%fprintf('mu po PF: size=%dx%d\n', size(public_vars.mu,1), size(public_vars.mu,2));
 % 10. Update Kalman filter
 [public_vars.mu, public_vars.sigma] = update_kalman_filter(read_only_vars, public_vars);
 % 11. Estimate current robot position
