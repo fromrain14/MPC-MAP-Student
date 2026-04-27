@@ -4,14 +4,20 @@ GOAL_THRESH=0.4;
 V_BASE=read_only_vars.agent_drive.max_vel*1;
 
 %init
-if read_only_vars.counter==1
+if ~isfield(public_vars, 'pp_path')
     public_vars.pp_path_id=4;
     public_vars.pp_wp_idx=1;
     public_vars.pp_done=false;
-    public_vars.pp_path=generate_path(public_vars.pp_path_id);
+    public_vars.pp_path=[];
 end
-public_vars.path=public_vars.pp_path;
-
+% public_vars.path=public_vars.pp_path;
+if ~isempty(public_vars.path) && isempty(public_vars.pp_path)
+    public_vars.pp_path=public_vars.path;
+end
+if isempty(public_vars.pp_path)
+    public_vars.motion_vector=[0.0, 0.0];
+return;
+end
 if public_vars.pp_done
     public_vars.motion_vector=[0.0, 0.0];
     return;
@@ -21,7 +27,11 @@ if ~public_vars.gnss_init_done
     public_vars.motion_vector=[0,0];
     return;
 end
-pose=public_vars.mu;
+if ~isempty(public_vars.estimated_pose) && ~any(isnan(public_vars.estimated_pose))
+    pose=public_vars.estimated_pose(:);
+else
+    pose=public_vars.mu;
+end
 %fprintf('mocap_pose=%.3f %.3f %.3f\n', pose(1), pose(2), pose(3));
 px=pose(1);
 py=pose(2);

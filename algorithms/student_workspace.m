@@ -5,7 +5,10 @@ function [public_vars] = student_workspace(read_only_vars,public_vars)
 if (read_only_vars.counter == 1)
     public_vars = init_particle_filter(read_only_vars, public_vars);
    public_vars = init_kalman_filter(read_only_vars, public_vars);
-
+disp(read_only_vars.discrete_map)
+disp(size(read_only_vars.discrete_map.map))
+disp(read_only_vars.discrete_map.goal)
+disp(read_only_vars.discrete_map.limits)
 end
 
 
@@ -17,29 +20,51 @@ if ~public_vars.gnss_init_done
     if size(public_vars.gnss_init_data,1)>=100
         gnss_mean=mean(public_vars.gnss_init_data);
         gnss_cov=cov(public_vars.gnss_init_data);
-        % Task 1: vypis vysledku
         fprintf('GNSS mean: x=%.4f, y=%.4f\n', gnss_mean(1), gnss_mean(2));
         fprintf('GNSS kovariancni matice:\n'); disp(gnss_cov);
-        % Task 4: nastav pocatecni belief z GNSS dat
         public_vars.mu=[gnss_mean(1); gnss_mean(2); 0];
         public_vars.sigma=diag([gnss_cov(1,1), gnss_cov(2,2), 1e6]);
-        % Task 1: nastav Q matici
         public_vars.kf.Q=gnss_cov;
         public_vars.gnss_init_done=true;
     end
+    % pokud neni GNSS dostupne (indoor mapa), preskoc inicializaci
+    if all(isnan(read_only_vars.gnss_position))
+        public_vars.gnss_init_done=true;
+    end
 end
-
+% Zjištění, zda je v aktuálním kroku dostupné GNSS
+public_vars.is_gnss_available = ~any(isnan(read_only_vars.gnss_position));
 % 9. Update particle filter
 public_vars.particles = update_particle_filter(read_only_vars, public_vars);
 %fprintf('mu po PF: size=%dx%d\n', size(public_vars.mu,1), size(public_vars.mu,2));
 % 10. Update Kalman filter
 [public_vars.mu, public_vars.sigma] = update_kalman_filter(read_only_vars, public_vars);
+
 % 11. Estimate current robot position
 public_vars.estimated_pose = estimate_pose(public_vars); % (x,y,theta)
-% 12. Path planning
-public_vars.path = plan_path(read_only_vars, public_vars);
-% 13. Plan next motion command
-public_vars = plan_motion(read_only_vars, public_vars);
+
+
+if ~isempty(public_vars.particles)
+    std_x = std(public_vars.particles(:, 1));
+    std_y = std(public_vars.particles(:, 2));
+    % Pokud je rozptyl v osách X i Y menší než 0.5 metru, filtr si je jistý polohou
+    pf_converged = (std_x < 0.5) && (std_y < 0.5); 
+else
+    pf_converged = false;
+end
+
+% 12. & 13. Path planning a Motion control
+if public_vars.is_gnss_available || pf_converged
+
+    public_vars.path = plan_path(read_only_vars, public_vars);
+    public_vars = plan_motion(read_only_vars, public_vars);
+else
+
+    public_vars.path = [];
+    
+    % Diferenciální podvozek (vR, vL): rotace na místě pro rychlou konvergenci částic
+    public_vars.motion_vector = [0.5, -0.5]; 
+end
 
 % % week2, task 2,3,4
 % counter = read_only_vars.counter;
