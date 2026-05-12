@@ -1,8 +1,13 @@
 function [target] = get_target(estimated_pose, path)
 LOOKAHEAD_DIST=1;
-target=path(1, :);
+
 px=estimated_pose(1);
 py=estimated_pose(2);
+
+dists = sqrt((path(:,1)-px).^2 + (path(:,2)-py).^2);
+[~, closest_idx] = min(dists);
+fallback_idx = min(closest_idx + 2, size(path, 1));
+target = path(fallback_idx, :);
 
 for i=1:size(path,1)-1
     ax=path(i,1);%zacatek usecky

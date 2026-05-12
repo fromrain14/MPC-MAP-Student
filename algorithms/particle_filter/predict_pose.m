@@ -27,6 +27,8 @@ new_theta=new_theta+sigma_th*randn();
 
 % normalizace uhlu do (-pi, pi)
 new_theta=atan2(sin(new_theta), cos(new_theta));
-
+lim = read_only_vars.map.limits; % [xmin, ymin, xmax, ymax]
+new_x = max(lim(1), min(lim(3), new_x));
+new_y = max(lim(2), min(lim(4), new_y));
 new_pose=[new_x, new_y, new_theta];
 end
